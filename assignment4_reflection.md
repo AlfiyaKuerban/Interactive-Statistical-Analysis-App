@@ -10,9 +10,10 @@ This project explored whether Google search interest is associated with Bitcoin 
 
 * The average Bitcoin return was not significantly different from 0.
 * There was no significant difference in returns between high and low search-interest days.
+* Chi-square test suggested that positive-return probability is independent of search interest.
 * However, variance comparison showed that volatility differs significantly between groups.
 * Correlation analysis showed a weak and non-significant relationship.
-* Chi-square test suggested that positive-return probability is independent of search interest.
+
 
 The most important insight is that **search interest appears to be associated with volatility rather than average returns**.
 
@@ -22,8 +23,9 @@ The most important insight is that **search interest appears to be associated wi
 
 * Observations are treated as independent daily values
 * Data is assumed to be reasonably stable over the selected time period
-* Linear relationship assumed in correlation analysis
 * Chi-square assumes sufficient expected counts
+* Linear relationship assumed in correlation analysis
+
 
 ---
 
