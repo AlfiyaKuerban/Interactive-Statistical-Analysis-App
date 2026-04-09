@@ -1,145 +1,166 @@
-# Data Pipeline for BTC and Sentiment Analysis
+# Bitcoin Returns & Google Search Interest Analysis
 
 ## Project Overview
 
-This project builds a small data pipeline using a medallion architecture (Bronze → Silver → Gold).
+This project extends a Bitcoin data pipeline (Bronze → Silver → Gold architecture) by integrating an external dataset: **Google Trends search interest**.
 
-The pipeline collects Bitcoin market data and Fear & Greed sentiment data from public APIs, cleans and transforms the data, and produces a final dataset that is ready for statistical analysis.
+The goal is to analyze whether public attention toward Bitcoin is associated with:
 
-This dataset will be used in Part 2 for hypothesis testing such as t-tests and proportion tests.
+* returns
+* volatility
+* and positive-return behavior
 
----
-
-## Data Sources
-
-* Binance API — daily BTC price (OHLCV data)
-* Alternative.me API — Fear & Greed Index (market sentiment)
-
----
-
-## Pipeline Structure
-
-### Bronze Layer
-
-* Raw API data is collected and saved as JSON files
-* Multiple snapshots are stored with timestamps
-* No changes are made to the data
-
-### Silver Layer
-
-* JSON data is parsed into tables
-* Timestamps are converted into readable dates
-* Columns are cleaned and renamed
-* Data types are corrected
-* Clean data is saved as CSV files
-
-### Gold Layer
-
-* BTC data and sentiment data are joined using the date column
-* New features are created:
-
-  * btc_daily_return
-  * positive_return
-* Final dataset is saved for analysis
+The project also includes an **interactive Streamlit app** that allows users to explore the dataset and run statistical tests.
 
 ---
 
 ## Project Structure
 
 ```
-data/
-  bronze/
-  silver/
-  gold/
-
-ingest/
-  get_btc_data.py
-  get_fear_greed_data.py
-
-transform/
-  transform_btc_silver.py
-  transform_fear_greed_silver.py
-  create_gold_dataset.py
-
-notebooks/
-
-analysis_preview.md
-README.md
-requirements.txt
-.env.example
-.gitignore
+your-repo/
+│
+├── data/
+│   ├── bronze/
+│   ├── silver/
+│   └── gold/
+│       └── final_dataset.csv
+│
+├── ingest/
+├── transform/
+├── notebooks/
+│   └── analysis_part2.ipynb
+│
+├── app/
+│   └── streamlit_app.py
+│
+├── assignment4_analysis_plan.md
+├── assignment4_reflection.md
+├── README.md
+├── requirements.txt
+└── .env.example
 ```
 
 ---
 
-## How to Run
+## Data Pipeline
 
-### 1. Run ingestion (Bronze)
+### Bronze Layer
 
-```
-python ingest/get_btc_data.py
-python ingest/get_fear_greed_data.py
-```
+* Raw API data (Bitcoin + Fear & Greed)
 
-### 2. Run transformations (Silver)
+### Silver Layer
 
-```
-python transform/transform_btc_silver.py
-python transform/transform_fear_greed_silver.py
-```
+* Cleaned and structured data
+* Date formatting and type conversion
 
-### 3. Create Gold dataset
+### Gold Layer
 
-```
-python transform/create_gold_dataset.py
+* Final merged dataset
+* Added features:
+
+  * `btc_daily_return`
+  * `positive_return`
+  * `search_interest`
+  * `high_interest`
+
+---
+
+## External Data Source
+
+* **Google Trends**
+* Keyword: *Bitcoin*
+* Joined by: `date`
+
+This adds context about public attention and market sentiment.
+
+---
+
+## Statistical Analysis
+
+This project includes the following tests:
+
+### 1. One-sample t-test
+
+* Is the average BTC return different from 0?
+
+### 2. Two-sample t-test
+
+* Do returns differ between high vs low search-interest days?
+
+### 3. Variance comparison (Levene test)
+
+* Is volatility different between groups?
+
+### 4. Correlation analysis (Pearson)
+
+* Is search interest associated with BTC returns?
+
+### 5. Chi-square test
+
+* Is positive return independent of search-interest level?
+
+---
+
+## Key Insight
+
+The most important finding:
+
+> Google search interest does not significantly change average Bitcoin returns,
+> but it is associated with **significantly different volatility**.
+
+This suggests that public attention may reflect **market uncertainty and price swings**, rather than predictable gains.
+
+---
+
+## Streamlit App
+
+This project includes an interactive dashboard with:
+
+* project overview
+* dataset preview
+* visual analysis
+* hypothesis testing
+* interpretation of results
+
+### Run the app locally:
+
+```bash
+streamlit run app/streamlit_app.py
 ```
 
 ---
 
-## Final Output
+## Requirements
 
-The final dataset is saved at:
+Install dependencies:
 
+```bash
+pip install -r requirements.txt
 ```
-data/gold/btc_sentiment_gold.csv
-```
-
-This dataset includes:
-
-* date
-* btc_close
-* btc_volume
-* fear_greed_value
-* value_classification
-* btc_daily_return
-* positive_return
 
 ---
 
-## Future Analysis (Part 2)
+## Limitations
 
-This dataset supports:
-
-* One-sample t-test
-  (Is average BTC return different from 0?)
-
-* Two-sample t-test
-  (Are returns different between Fear and Greed days?)
-
-* Proportion z-test
-  (Is the proportion of positive-return days higher during Greed?)
+* Small dataset
+* Google Trends data is normalized
+* Results are associative, not causal
+* External factors (news, macro events) not included
 
 ---
 
-## AI Usage
+## Author
 
-I used ChatGPT to help generate starter code for API requests and data transformation.
-
-I verified the correctness of the pipeline manually and fixed issues such as timestamp conversion errors when parsing the Fear & Greed data.
+**Alfiya Kuerban**
+Applied Data Analytics — Durham College
 
 ---
 
-## Notes
+## Acknowledgement
 
-* This project focuses on building a clean and structured data pipeline. The design decisions (such as selected features and join strategy) are made to support statistical analysis in the next stage.
-* Only a small number of Bronze files are included as representative samples.
+* Binance API (Bitcoin data)
+* Alternative.me (Fear & Greed Index)
+* Google Trends (search interest data)
+
+---
+
