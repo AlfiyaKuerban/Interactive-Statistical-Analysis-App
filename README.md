@@ -87,17 +87,19 @@ This project includes the following tests:
 
 * Do returns differ between high vs low search-interest days?
 
-### 3. Variance comparison (Levene test)
+### 3. Chi-square test
+
+* Is positive return independent of search-interest level?
+
+### 4. Variance comparison (Levene test)
 
 * Is volatility different between groups?
 
-### 4. Correlation analysis (Pearson)
+### 5. Correlation analysis (Pearson)
 
 * Is search interest associated with BTC returns?
 
-### 5. Chi-square test
 
-* Is positive return independent of search-interest level?
 
 ---
 
