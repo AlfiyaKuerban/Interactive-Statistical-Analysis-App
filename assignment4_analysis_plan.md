@@ -39,9 +39,10 @@ The goal is to explore whether public attention (measured by search interest) is
 
 1. Is the average Bitcoin return different from 0?
 2. Do returns differ between high and low search-interest days?
-3. Is return volatility different between high and low search-interest days?
-4. Is search interest associated with Bitcoin returns?
-5. Is the probability of a positive return independent of search-interest level?
+3. Is the probability of a positive return independent of search-interest level?
+4. Is return volatility different between high and low search-interest days?
+5. Is search interest associated with Bitcoin returns?
+
 
 ---
 
@@ -64,14 +65,23 @@ The goal is to explore whether public attention (measured by search interest) is
 
 ---
 
-### 3. Variance comparison (Levene’s test)
+### 3. Chi-square test of independence
+
+* Purpose: Test whether:
+
+  * positive_return is independent of high_interest
+* Uses contingency table
+
+---
+
+### 4. Variance comparison (Levene’s test)
 
 * Purpose: Compare volatility (variance) between groups
 * Reason: Levene test is robust to non-normal data
 
 ---
 
-### 4. Correlation analysis (Pearson)
+### 5. Correlation analysis (Pearson)
 
 * Purpose: Measure linear relationship between:
 
@@ -80,14 +90,6 @@ The goal is to explore whether public attention (measured by search interest) is
 
 ---
 
-### 5. Chi-square test of independence
-
-* Purpose: Test whether:
-
-  * positive_return is independent of high_interest
-* Uses contingency table
-
----
 
 ## 6. Expected Insights
 
