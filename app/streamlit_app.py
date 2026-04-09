@@ -32,6 +32,10 @@ t1_stat, t1_p = stats.ttest_1samp(returns, 0)
 # Two-sample t-test
 t2_stat, t2_p = stats.ttest_ind(high, low)
 
+# Chi-square
+table = pd.crosstab(df["positive_return"], df["high_interest"])
+chi2_stat, chi2_p, dof, expected = chi2_contingency(table)
+
 # Variance comparison
 var_high = high.var()
 var_low = low.var()
@@ -39,10 +43,6 @@ lev_stat, lev_p = levene(high, low)
 
 # Correlation
 corr_val, corr_p = pearsonr(df["search_interest"], df["btc_daily_return"])
-
-# Chi-square
-table = pd.crosstab(df["positive_return"], df["high_interest"])
-chi2_stat, chi2_p, dof, expected = chi2_contingency(table)
 
 # ---------------------------
 # Title
