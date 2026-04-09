@@ -137,7 +137,14 @@ st.pyplot(fig1)
 
 st.caption("This chart supports the two-sample t-test and variance comparison.")
 
-# Chart 3: scatterplot for correlation
+# Chart 3: category counts for chi-square
+st.subheader("3.4 Positive Return Count by Search-Interest Group")
+count_table = pd.crosstab(df["high_interest"], df["positive_return"])
+st.bar_chart(count_table)
+
+st.caption("This chart supports the chi-square test of independence.")
+
+# Chart 4: scatterplot for correlation
 st.subheader("3.3 Search Interest vs BTC Daily Return")
 
 fig2, ax2 = plt.subplots(figsize=(7, 4))
@@ -149,12 +156,6 @@ st.pyplot(fig2)
 
 st.caption("This chart supports the correlation analysis.")
 
-# Chart 4: category counts for chi-square
-st.subheader("3.4 Positive Return Count by Search-Interest Group")
-count_table = pd.crosstab(df["high_interest"], df["positive_return"])
-st.bar_chart(count_table)
-
-st.caption("This chart supports the chi-square test of independence.")
 
 # ---------------------------
 # 4. Hypothesis Testing
