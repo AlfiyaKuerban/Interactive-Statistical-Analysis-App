@@ -8,7 +8,7 @@ from scipy.stats import pearsonr, chi2_contingency, levene
 # Page config
 # ---------------------------
 st.set_page_config(
-    page_title="Bitcoin & Google Trends Analysis",
+    page_title="Bitcoin Returns and Google Search Interest",
     layout="wide"
 )
 
@@ -19,10 +19,9 @@ df = pd.read_csv("data/gold/final_dataset.csv")
 df["date"] = pd.to_datetime(df["date"])
 
 # ---------------------------
-# Precompute test variables
+# Prepare variables
 # ---------------------------
 returns = df["btc_daily_return"]
-
 high = df[df["high_interest"] == 1]["btc_daily_return"]
 low = df[df["high_interest"] == 0]["btc_daily_return"]
 
@@ -32,10 +31,6 @@ t1_stat, t1_p = stats.ttest_1samp(returns, 0)
 # Two-sample t-test
 t2_stat, t2_p = stats.ttest_ind(high, low)
 
-# Chi-square
-table = pd.crosstab(df["positive_return"], df["high_interest"])
-chi2_stat, chi2_p, dof, expected = chi2_contingency(table)
-
 # Variance comparison
 var_high = high.var()
 var_low = low.var()
@@ -44,6 +39,31 @@ lev_stat, lev_p = levene(high, low)
 # Correlation
 corr_val, corr_p = pearsonr(df["search_interest"], df["btc_daily_return"])
 
+# Chi-square
+table = pd.crosstab(df["positive_return"], df["high_interest"])
+chi2_stat, chi2_p, dof, expected = chi2_contingency(table)
+
+# ---------------------------
+# Sidebar
+# ---------------------------
+st.sidebar.title("Dashboard Navigation")
+section = st.sidebar.radio(
+    "Go to section",
+    [
+        "Overview",
+        "Data Preview",
+        "Visual Story",
+        "Hypothesis Testing",
+        "Key Insight",
+        "Limitations"
+    ]
+)
+
+st.sidebar.markdown("---")
+st.sidebar.write("Dataset: final_dataset.csv")
+st.sidebar.write("External source: Google Trends")
+st.sidebar.write("Join key: date")
+
 # ---------------------------
 # Title
 # ---------------------------
@@ -51,58 +71,71 @@ st.title("Bitcoin Returns and Google Search Interest")
 st.caption("Assignment 4 — Interactive Statistical Analysis App")
 
 # ---------------------------
-# 1. Project Overview
+# Overview
 # ---------------------------
-st.header("1. Project Overview")
+if section == "Overview":
+    st.header("1. Project Overview")
 
-st.write("""
-This project extends the Assignment 3 Bitcoin pipeline by adding Google Trends data as a new external source.  
-The goal is to explore whether public search interest in Bitcoin is associated with returns, volatility, and positive-return behavior.
+    st.write("""
+This project extends the Assignment 3 Bitcoin pipeline by adding Google Trends as a new external data source.
+
+The goal is to explore whether public search interest in Bitcoin is associated with:
+- daily returns
+- volatility
+- and positive-return behavior
 """)
 
-col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-with col1:
-    st.subheader("Original Assignment 3 Dataset")
-    st.write("""
-- Bitcoin closing price  
-- Bitcoin trading volume  
-- Fear & Greed value  
-- Sentiment classification  
-- Daily return  
+    with col1:
+        st.subheader("Original Assignment 3 Dataset")
+        st.write("""
+- Bitcoin closing price
+- Bitcoin trading volume
+- Fear & Greed value
+- Sentiment classification
+- Daily return
 - Positive return flag
 """)
 
-with col2:
-    st.subheader("New External Source")
-    st.write("""
+    with col2:
+        st.subheader("New External Source")
+        st.write("""
 - Google Trends search interest for **Bitcoin**
 - Joined by **date**
 - New derived variable: **high_interest**
 """)
 
-st.subheader("Main Questions")
-st.write("""
-1. Is average BTC return different from 0?  
+    st.subheader("Main Research Questions")
+    st.write("""
+1. Is the average Bitcoin return different from 0?  
 2. Do returns differ between high and low search-interest days?  
-3. Is volatility different between high and low search-interest days?  
-4. Is search interest correlated with BTC returns?  
-5. Is positive return independent of search-interest level?
+3. Is positive return independent of search-interest level?  
+4. Is volatility different between high and low search-interest days?  
+5. Is search interest associated with Bitcoin returns?
 """)
 
+    st.subheader("Quick Metrics")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Rows", len(df))
+    m2.metric("Mean Return", f"{df['btc_daily_return'].mean():.4f}")
+    m3.metric("Avg Search Interest", f"{df['search_interest'].mean():.1f}")
+    m4.metric("Positive Return Rate", f"{df['positive_return'].mean():.0%}")
+
 # ---------------------------
-# 2. Data Preview
+# Data Preview
 # ---------------------------
-st.header("2. Data Preview")
+elif section == "Data Preview":
+    st.header("2. Data Preview")
 
-st.subheader("Sample of Final Dataset")
-st.dataframe(df.head(), use_container_width=True)
+    st.subheader("Sample of Final Dataset")
+    st.dataframe(df.head(), use_container_width=True)
 
-st.subheader("Summary Statistics")
-st.dataframe(df.describe(), use_container_width=True)
+    st.subheader("Summary Statistics")
+    st.dataframe(df.describe(), use_container_width=True)
 
-st.subheader("Column Descriptions")
-st.write("""
+    st.subheader("Column Descriptions")
+    st.write("""
 - **date**: trading date  
 - **btc_close**: Bitcoin closing price  
 - **btc_volume**: Bitcoin trading volume  
@@ -111,196 +144,210 @@ st.write("""
 - **btc_daily_return**: daily Bitcoin return  
 - **positive_return**: 1 if daily return is positive, otherwise 0  
 - **search_interest**: Google Trends score for Bitcoin  
-- **high_interest**: 1 if search interest is above median, otherwise 0
+- **high_interest**: 1 if search interest is above the median, otherwise 0
 """)
 
 # ---------------------------
-# 3. Visual Storytelling
+# Visual Story
 # ---------------------------
-st.header("3. Visual Storytelling")
+elif section == "Visual Story":
+    st.header("3. Visual Storytelling")
+    st.write("These charts are designed to support the statistical analyses shown later.")
 
-st.write("These charts help motivate the formal tests shown later in the app.")
+    # Row 1
+    col1, col2 = st.columns(2)
 
-# Chart 1: time series
-st.subheader("3.1 BTC Daily Returns Over Time")
-st.line_chart(df.set_index("date")["btc_daily_return"])
+    with col1:
+        st.subheader("3.1 BTC Daily Returns Over Time")
+        st.line_chart(df.set_index("date")["btc_daily_return"])
+        st.caption("This chart shows how returns fluctuate over time and supports the one-sample t-test.")
 
-# Chart 2: boxplot high vs low
-st.subheader("3.2 Returns by Search-Interest Group")
+    with col2:
+        st.subheader("3.2 Returns by Search-Interest Group")
+        fig1, ax1 = plt.subplots(figsize=(5, 3.5))
+        ax1.boxplot([low.dropna(), high.dropna()], labels=["Low Interest", "High Interest"])
+        ax1.set_ylabel("BTC Daily Return")
+        ax1.set_title("Distribution of Returns by Search Interest")
+        st.pyplot(fig1)
+        st.caption("This chart supports the two-sample t-test and variance comparison.")
 
-fig1, ax1 = plt.subplots(figsize=(7, 4))
-groups = [low.dropna(), high.dropna()]
-ax1.boxplot(groups, labels=["Low Interest", "High Interest"])
-ax1.set_ylabel("BTC Daily Return")
-ax1.set_title("Distribution of Returns by Search Interest")
-st.pyplot(fig1)
+    # Row 2
+    col3, col4 = st.columns(2)
 
-st.caption("This chart supports the two-sample t-test and variance comparison.")
+    with col3:
+        st.subheader("3.3 Search Interest vs BTC Return")
+        fig2, ax2 = plt.subplots(figsize=(5, 3.5))
+        ax2.scatter(df["search_interest"], df["btc_daily_return"])
+        ax2.set_xlabel("Search Interest")
+        ax2.set_ylabel("BTC Daily Return")
+        ax2.set_title("Search Interest and BTC Return")
+        st.pyplot(fig2)
+        st.caption("This chart supports the correlation analysis.")
 
-# Chart 3: category counts for chi-square
-st.subheader("3.4 Positive Return Count by Search-Interest Group")
-count_table = pd.crosstab(df["high_interest"], df["positive_return"])
-st.bar_chart(count_table)
-
-st.caption("This chart supports the chi-square test of independence.")
-
-# Chart 4: scatterplot for correlation
-st.subheader("3.3 Search Interest vs BTC Daily Return")
-
-fig2, ax2 = plt.subplots(figsize=(7, 4))
-ax2.scatter(df["search_interest"], df["btc_daily_return"])
-ax2.set_xlabel("Search Interest")
-ax2.set_ylabel("BTC Daily Return")
-ax2.set_title("Search Interest and BTC Return")
-st.pyplot(fig2)
-
-st.caption("This chart supports the correlation analysis.")
-
+    with col4:
+        st.subheader("3.4 Positive Return Count by Search-Interest Group")
+        count_table = pd.crosstab(df["high_interest"], df["positive_return"])
+        st.bar_chart(count_table)
+        st.caption("This chart supports the chi-square test of independence.")
 
 # ---------------------------
-# 4. Hypothesis Testing
+# Hypothesis Testing
 # ---------------------------
-st.header("4. Hypothesis Testing")
+elif section == "Hypothesis Testing":
+    st.header("4. Hypothesis Testing")
 
-test_choice = st.selectbox(
-    "Choose a test to view",
-    [
-        "One-sample t-test",
-        "Two-sample t-test",
-        "Variance comparison",
-        "Correlation analysis",
-        "Chi-square test"
-    ]
-)
+    test_choice = st.selectbox(
+        "Select a test",
+        [
+            "1. One-sample t-test",
+            "2. Two-sample t-test",
+            "3. Chi-square test",
+            "4. Variance comparison",
+            "5. Correlation analysis"
+        ]
+    )
 
-if test_choice == "One-sample t-test":
-    st.subheader("One-sample t-test: Is mean BTC return different from 0?")
-    st.write("**Null hypothesis:** The average BTC daily return equals 0.")
-    st.write("**Alternative hypothesis:** The average BTC daily return is different from 0.")
-    st.write(f"**T-statistic:** {t1_stat:.4f}")
-    st.write(f"**P-value:** {t1_p:.4f}")
+    if test_choice == "1. One-sample t-test":
+        st.subheader("One-sample t-test")
+        st.write("**Question:** Is the average Bitcoin daily return different from 0?")
+        st.write("**Null hypothesis:** Mean BTC return = 0")
+        st.write("**Alternative hypothesis:** Mean BTC return ≠ 0")
+        st.write(f"**T-statistic:** {t1_stat:.4f}")
+        st.write(f"**P-value:** {t1_p:.4f}")
 
-    if t1_p < 0.05:
-        st.success("Conclusion: The average BTC return is significantly different from 0.")
-    else:
-        st.warning("Conclusion: The average BTC return is not significantly different from 0.")
+        if t1_p < 0.05:
+            st.success("Conclusion: The average BTC return is significantly different from 0.")
+        else:
+            st.warning("Conclusion: The average BTC return is not significantly different from 0.")
 
-    st.info("""
+        st.info("""
 Why this test fits:
-- The variable is numeric.
-- We are comparing one sample mean to a fixed reference value (0).
+- BTC daily return is numeric.
+- We compare one sample mean to a fixed value.
 
 Assumptions / limitation:
-- Assumes daily returns are reasonably independent.
-- Small sample size may weaken the reliability of conclusions.
+- Assumes observations are reasonably independent.
+- Small sample size may reduce reliability.
 """)
 
-elif test_choice == "Two-sample t-test":
-    st.subheader("Two-sample t-test: Are returns different between high and low search-interest days?")
-    st.write("**Null hypothesis:** Average returns are equal in both groups.")
-    st.write("**Alternative hypothesis:** Average returns differ between groups.")
-    st.write(f"**T-statistic:** {t2_stat:.4f}")
-    st.write(f"**P-value:** {t2_p:.4f}")
+    elif test_choice == "2. Two-sample t-test":
+        st.subheader("Two-sample t-test")
+        st.write("**Question:** Do returns differ between high and low search-interest days?")
+        st.write("**Null hypothesis:** Mean returns are equal")
+        st.write("**Alternative hypothesis:** Mean returns are different")
+        st.write(f"**T-statistic:** {t2_stat:.4f}")
+        st.write(f"**P-value:** {t2_p:.4f}")
 
-    if t2_p < 0.05:
-        st.success("Conclusion: Returns differ significantly between high and low search-interest days.")
-    else:
-        st.warning("Conclusion: No significant difference in returns between high and low search-interest days.")
+        if t2_p < 0.05:
+            st.success("Conclusion: Returns differ significantly between groups.")
+        else:
+            st.warning("Conclusion: No significant difference in returns between groups.")
 
-    st.info("""
+        st.info("""
 Why this test fits:
-- BTC return is numeric.
-- high_interest creates two groups.
+- BTC daily return is numeric.
+- high_interest creates two independent groups.
 
 Assumptions / limitation:
-- Observations should be reasonably independent.
+- Assumes observations are reasonably independent.
 - Small sample size may reduce statistical power.
 """)
 
-elif test_choice == "Variance comparison":
-    st.subheader("Variance Comparison: Is volatility different between high and low search-interest days?")
-    st.write(f"**Variance (High interest):** {var_high:.6f}")
-    st.write(f"**Variance (Low interest):** {var_low:.6f}")
-    st.write(f"**Levene test p-value:** {lev_p:.4f}")
+    elif test_choice == "3. Chi-square test":
+        st.subheader("Chi-square Test of Independence")
+        st.write("**Question:** Is positive return independent of search-interest group?")
+        st.write("**Null hypothesis:** positive_return and high_interest are independent")
+        st.write("**Alternative hypothesis:** They are associated")
 
-    if lev_p < 0.05:
-        st.success("Conclusion: Return volatility is significantly different between the two groups.")
-    else:
-        st.warning("Conclusion: No significant difference in volatility between the two groups.")
+        st.write("**Contingency table:**")
+        st.dataframe(table, use_container_width=True)
 
-    st.info("""
+        st.write(f"**P-value:** {chi2_p:.4f}")
+
+        if chi2_p < 0.05:
+            st.success("Conclusion: Positive return and search-interest group are associated.")
+        else:
+            st.warning("Conclusion: Positive return appears independent of search-interest group.")
+
+        st.info("""
 Why this test fits:
-- The question is about variability, not mean.
-- Levene's test is appropriate because it is more robust than a classical F-test.
+- Both variables are categorical.
+- We are testing independence between two categorical variables.
 
 Assumptions / limitation:
-- Volatility differences do not imply causation.
-- Other unobserved market events may also affect variance.
+- Expected counts should be reasonably large.
+- Small sample size can weaken reliability.
 """)
 
-elif test_choice == "Correlation analysis":
-    st.subheader("Correlation Analysis: Is search interest associated with BTC daily return?")
-    st.write(f"**Pearson correlation:** {corr_val:.4f}")
-    st.write(f"**P-value:** {corr_p:.4f}")
+    elif test_choice == "4. Variance comparison":
+        st.subheader("Variance Comparison")
+        st.write("**Question:** Is volatility different between high and low search-interest days?")
+        st.write(f"**Variance (High interest):** {var_high:.6f}")
+        st.write(f"**Variance (Low interest):** {var_low:.6f}")
+        st.write(f"**Levene test p-value:** {lev_p:.4f}")
 
-    if corr_p < 0.05:
-        st.success("Conclusion: There is a statistically significant linear relationship.")
-    else:
-        st.warning("Conclusion: No statistically significant linear relationship was detected.")
+        if lev_p < 0.05:
+            st.success("Conclusion: Volatility is significantly different between the two groups.")
+        else:
+            st.warning("Conclusion: No significant difference in volatility between the two groups.")
 
-    st.info("""
+        st.info("""
+Why this test fits:
+- The question is about variability, not the mean.
+- Levene's test is robust and suitable for financial return data.
+
+Assumptions / limitation:
+- Significant variance does not imply causation.
+- Other market events may also influence volatility.
+""")
+
+    elif test_choice == "5. Correlation analysis":
+        st.subheader("Correlation Analysis")
+        st.write("**Question:** Is search interest associated with BTC daily return?")
+        st.write(f"**Pearson correlation:** {corr_val:.4f}")
+        st.write(f"**P-value:** {corr_p:.4f}")
+
+        if corr_p < 0.05:
+            st.success("Conclusion: There is a statistically significant linear relationship.")
+        else:
+            st.warning("Conclusion: No statistically significant linear relationship was detected.")
+
+        st.info("""
 Why this test fits:
 - Both variables are quantitative.
 - Pearson correlation measures linear association.
 
 Assumptions / limitation:
 - Sensitive to outliers.
-- A weak or non-significant result may reflect small sample size or non-linear patterns.
-""")
-
-elif test_choice == "Chi-square test":
-    st.subheader("Chi-square Test: Is positive return independent of search-interest group?")
-    st.write("**Contingency table:**")
-    st.dataframe(table, use_container_width=True)
-    st.write(f"**P-value:** {chi2_p:.4f}")
-
-    if chi2_p < 0.05:
-        st.success("Conclusion: Positive return and search-interest group are associated.")
-    else:
-        st.warning("Conclusion: Positive return appears independent of search-interest group.")
-
-    st.info("""
-Why this test fits:
-- Both variables are categorical.
-- We are testing whether two categorical variables are independent.
-
-Assumptions / limitation:
-- Expected cell counts should be reasonably large.
-- Small datasets can weaken chi-square reliability.
+- A weak result may reflect small sample size or non-linear patterns.
 """)
 
 # ---------------------------
-# 5. Key Insight
+# Key Insight
 # ---------------------------
-st.header("5. Key Insight")
+elif section == "Key Insight":
+    st.header("5. Key Insight")
 
-st.write("""
+    st.write("""
 The most important result in this project is the variance comparison.
 
-Although search interest did not significantly change the average return or the probability of a positive-return day,
-higher search-interest periods showed significantly different volatility.
-This suggests that public attention may be associated more with market uncertainty and larger swings than with predictable gains.
+Although search interest did not significantly change average returns or the probability of a positive-return day,
+it was associated with significantly different volatility.
+
+In simple terms, when more people are searching about Bitcoin, the market becomes more unstable,
+even if the average return does not change much.
 """)
 
 # ---------------------------
-# 6. Reflection / Limitations
+# Limitations
 # ---------------------------
-st.header("6. Reflection / Limitations")
+elif section == "Limitations":
+    st.header("6. Reflection / Limitations")
 
-st.write("""
+    st.write("""
 - The dataset covers a short time period.  
-- Search interest is a normalized Google Trends score, not an absolute count.  
-- The data supports association analysis, not causal claims.  
-- Other market drivers were not included in the model.  
-- Small sample size may reduce the power of some tests.
+- Google Trends values are normalized scores, not absolute search counts.  
+- The analysis shows association, not causation.  
+- Other market factors were not included.  
+- Small sample size may reduce the strength of some conclusions.
 """)
